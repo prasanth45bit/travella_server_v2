@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Booking API Client</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1, h2 { color: #333; }
+    label, input, textarea, button { display: block; margin-bottom: 12px; width: 100%; max-width: 400px; }
+    input, textarea { padding: 8px; }
+    button { cursor: pointer; padding: 10px; background-color: #007BFF; color: white; border: none; border-radius: 4px; }
+    button:hover { background-color: #0056b3; }
+    .response { margin-top: 20px; white-space: pre-wrap; background: #f4f4f4; padding: 10px; border-radius: 5px; max-width: 600px; }
+  </style>
+</head>
+<body>
+  <h1>Booking API Test Interface</h1>
+
+  <section>
+    <h2>Create Booking</h2>
+    <label for="tokenCreate">JWT Token</label>
+    <input id="tokenCreate" type="text" placeholder="Enter JWT token" />
+    
+    <label for="destinationId">Destination ID</label>
+    <input id="destinationId" type="text" placeholder="Enter Destination ID" />
+    
+    <label for="customPlan">Custom Plan (JSON)</label>
+    <textarea id="customPlan" rows="4" placeholder='Example: {"day1":"Visit museum","day2":"Park"}'></textarea>
+    
+    <label for="hotel">Hotel Info (JSON, optional)</label>
+    <textarea id="hotel" rows="3" placeholder='Example: {"hotelId":"id", "name":"Hotel name"}'></textarea>
+    
+    <label for="carRental">Car Rental Info (JSON, optional)</label>
+    <textarea id="carRental" rows="3" placeholder='Example: {"carRentalId":"id", "provider":"ZoomCar"}'></textarea>
+    
+    <button onclick="createBooking()">Create Booking</button>
+    <pre id="createResponse" class="response"></pre>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>Get All Bookings</h2>
+    <label for="tokenGetAll">JWT Token</label>
+    <input id="tokenGetAll" type="text" placeholder="Enter JWT token" />
+    <button onclick="getAllBookings()">Get Bookings</button>
+    <pre id="getAllResponse" class="response"></pre>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>Get Booking By ID</h2>
+    <label for="tokenGetById">JWT Token</label>
+    <input id="tokenGetById" type="text" placeholder="Enter JWT token" />
+
+    <label for="bookingId">Booking ID</label>
+    <input id="bookingId" type="text" placeholder="Enter Booking ID" />
+
+    <button onclick="getBookingById()">Get Booking</button>
+    <pre id="getByIdResponse" class="response"></pre>
+  </section>
+
+  <script>
+    async function createBooking() {
+      const token = document.getElementById('tokenCreate').value.trim();
+      const destinationId = document.getElementById('destinationId').value.trim();
+      const customPlanText = document.getElementById('customPlan').value.trim();
+      const hotelText = document.getElementById('hotel').value.trim();
+      const carRentalText = document.getElementById('carRental').value.trim();
+
+      if (!token || !destinationId) {
+        alert('JWT token and Destination ID are required.');
+        return;
+      }
+      
+      let customPlan = null, hotel = null, carRental = null;
+      try {
+        customPlan = customPlanText ? JSON.parse(customPlanText) : undefined;
+      } catch {
+        alert('Invalid JSON in Custom Plan');
+        return;
+      }
+      try {
+        hotel = hotelText ? JSON.parse(hotelText) : undefined;
+      } catch {
+        alert('Invalid JSON in Hotel Info');
+        return;
+      }
+      try {
+        carRental = carRentalText ? JSON.parse(carRentalText) : undefined;
+      } catch {
+        alert('Invalid JSON in Car Rental Info');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ destinationId, customPlan, hotel, carRental })
+        });
+        const data = await response.json();
+        document.getElementById('createResponse').textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById('createResponse').textContent = error.toString();
+      }
+    }
+
+    async function getAllBookings() {
+      const token = document.getElementById('tokenGetAll').value.trim();
+      if (!token) {
+        alert('JWT token is required.');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/bookings', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        document.getElementById('getAllResponse').textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById('getAllResponse').textContent = error.toString();
+      }
+    }
+
+    async function getBookingById() {
+      const token = document.getElementById('tokenGetById').value.trim();
+      const bookingId = document.getElementById('bookingId').value.trim();
+
+      if (!token || !bookingId) {
+        alert('JWT token and Booking ID are required.');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/bookings/${bookingId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        document.getElementById('getByIdResponse').textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById('getByIdResponse').textContent = error.toString();
+      }
+    }
+  </script>
+</body>
+</html>
