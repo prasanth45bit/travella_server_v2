@@ -23,6 +23,23 @@ router.get('/', async (req, res) => {
   catch (err) { res.status(500).json({ message: err.message }); }
 });
 
+
+// Get car rentals by destination ID (separate endpoint)
+router.get('/destination/:destinationId', async (req, res) => {
+  try {
+    const cars = await Hotel.find({ destination: req.params.destinationId });
+
+    if (!cars || cars.length === 0) {
+      return res.status(404).json({ message: 'No Hotels found for this destination' });
+    }
+
+    res.status(200).json(cars);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 // Get hotel by id
 router.get('/:id', async (req, res) => {
   try {

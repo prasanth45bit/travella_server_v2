@@ -1,39 +1,36 @@
 const mongoose = require('mongoose');
 
-const ActivitySchema = new mongoose.Schema({
-  place: { type: mongoose.Schema.Types.ObjectId, ref: 'Place' }, // ref to Place
-  name: String, // fallback if not using place
-  time: String,
-  notes: String,
-  image: String
-});
-
-const DayWisePlanSchema = new mongoose.Schema({
-  day: Number,
-  title: String,
-  activities: [ActivitySchema]
-});
-
-const BookingSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  destination: { type: mongoose.Schema.Types.ObjectId, ref: 'Destination', required: true },
-  customPlan: [DayWisePlanSchema],
-  hotel: {
-    hotelId: { type: mongoose.Schema.Types.ObjectId, ref: 'Hotel' },
-    roomType: String,
-    checkIn: Date,
-    checkOut: Date,
-    price: Number
+const bookingSchema = new mongoose.Schema({
+  destinationId: {
+    type: String,
+    ref: 'Destination',
+    required: true
   },
-  carRental: {
-    carRentalId: { type: mongoose.Schema.Types.ObjectId, ref: 'CarRental' },
+  startDate: { type: Date, required: true },
+  endDate: { type: Date, required: true },
+  guests: { type: Number, required: true },
+  customPlan: [
+    {
+      day: Number,
+      places: [{ type: String, ref: 'Place' }]
+    } 
+  ],
+  hotel: [
+    {
+      day: Number,
+      hotelId: { type: String, ref: 'Hotel' },
+      pricePerNight: Number
+    }
+  ],
+  car: {
     carType: String,
-    pickupDate: Date,
-    dropoffDate: Date,
-    price: Number
+    carId: { type: String, ref: 'Carrental' },
+    pricePerDay: Number,
+    totalDays: Number
   },
-  status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'pending' },
-  bookingDate: { type: Date, default: Date.now },
-}, { timestamps: true });
+  totalCost: Number,
+  user: { type: String, ref: 'User' },
+  createdAt: { type: Date, default: Date.now }
+});
 
-module.exports = mongoose.model('Booking', BookingSchema);
+module.exports = mongoose.model('Booking', bookingSchema);

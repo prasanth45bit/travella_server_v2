@@ -1,153 +1,215 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Booking API Client</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1, h2 { color: #333; }
-    label, input, textarea, button { display: block; margin-bottom: 12px; width: 100%; max-width: 400px; }
-    input, textarea { padding: 8px; }
-    button { cursor: pointer; padding: 10px; background-color: #007BFF; color: white; border: none; border-radius: 4px; }
-    button:hover { background-color: #0056b3; }
-    .response { margin-top: 20px; white-space: pre-wrap; background: #f4f4f4; padding: 10px; border-radius: 5px; max-width: 600px; }
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TravelAI Booking</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24
+    }
   </style>
-</head>
-<body>
-  <h1>Booking API Test Interface</h1>
-
-  <section>
-    <h2>Create Booking</h2>
-    <label for="tokenCreate">JWT Token</label>
-    <input id="tokenCreate" type="text" placeholder="Enter JWT token" />
-    
-    <label for="destinationId">Destination ID</label>
-    <input id="destinationId" type="text" placeholder="Enter Destination ID" />
-    
-    <label for="customPlan">Custom Plan (JSON)</label>
-    <textarea id="customPlan" rows="4" placeholder='Example: {"day1":"Visit museum","day2":"Park"}'></textarea>
-    
-    <label for="hotel">Hotel Info (JSON, optional)</label>
-    <textarea id="hotel" rows="3" placeholder='Example: {"hotelId":"id", "name":"Hotel name"}'></textarea>
-    
-    <label for="carRental">Car Rental Info (JSON, optional)</label>
-    <textarea id="carRental" rows="3" placeholder='Example: {"carRentalId":"id", "provider":"ZoomCar"}'></textarea>
-    
-    <button onclick="createBooking()">Create Booking</button>
-    <pre id="createResponse" class="response"></pre>
-  </section>
-
-  <hr />
-
-  <section>
-    <h2>Get All Bookings</h2>
-    <label for="tokenGetAll">JWT Token</label>
-    <input id="tokenGetAll" type="text" placeholder="Enter JWT token" />
-    <button onclick="getAllBookings()">Get Bookings</button>
-    <pre id="getAllResponse" class="response"></pre>
-  </section>
-
-  <hr />
-
-  <section>
-    <h2>Get Booking By ID</h2>
-    <label for="tokenGetById">JWT Token</label>
-    <input id="tokenGetById" type="text" placeholder="Enter JWT token" />
-
-    <label for="bookingId">Booking ID</label>
-    <input id="bookingId" type="text" placeholder="Enter Booking ID" />
-
-    <button onclick="getBookingById()">Get Booking</button>
-    <pre id="getByIdResponse" class="response"></pre>
-  </section>
-
-  <script>
-    async function createBooking() {
-      const token = document.getElementById('tokenCreate').value.trim();
-      const destinationId = document.getElementById('destinationId').value.trim();
-      const customPlanText = document.getElementById('customPlan').value.trim();
-      const hotelText = document.getElementById('hotel').value.trim();
-      const carRentalText = document.getElementById('carRental').value.trim();
-
-      if (!token || !destinationId) {
-        alert('JWT token and Destination ID are required.');
-        return;
-      }
-      
-      let customPlan = null, hotel = null, carRental = null;
-      try {
-        customPlan = customPlanText ? JSON.parse(customPlanText) : undefined;
-      } catch {
-        alert('Invalid JSON in Custom Plan');
-        return;
-      }
-      try {
-        hotel = hotelText ? JSON.parse(hotelText) : undefined;
-      } catch {
-        alert('Invalid JSON in Hotel Info');
-        return;
-      }
-      try {
-        carRental = carRentalText ? JSON.parse(carRentalText) : undefined;
-      } catch {
-        alert('Invalid JSON in Car Rental Info');
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/bookings', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#22D3EE",
+            "background-light": "#F8FAFC",
+            "background-dark": "#0F172A",
           },
-          body: JSON.stringify({ destinationId, customPlan, hotel, carRental })
-        });
-        const data = await response.json();
-        document.getElementById('createResponse').textContent = JSON.stringify(data, null, 2);
-      } catch (error) {
-        document.getElementById('createResponse').textContent = error.toString();
-      }
-    }
-
-    async function getAllBookings() {
-      const token = document.getElementById('tokenGetAll').value.trim();
-      if (!token) {
-        alert('JWT token is required.');
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/bookings', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-        document.getElementById('getAllResponse').textContent = JSON.stringify(data, null, 2);
-      } catch (error) {
-        document.getElementById('getAllResponse').textContent = error.toString();
-      }
-    }
-
-    async function getBookingById() {
-      const token = document.getElementById('tokenGetById').value.trim();
-      const bookingId = document.getElementById('bookingId').value.trim();
-
-      if (!token || !bookingId) {
-        alert('JWT token and Booking ID are required.');
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/bookings/${bookingId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-        document.getElementById('getByIdResponse').textContent = JSON.stringify(data, null, 2);
-      } catch (error) {
-        document.getElementById('getByIdResponse').textContent = error.toString();
-      }
-    }
+          fontFamily: {
+            display: ["Poppins", "sans-serif"],
+          },
+          borderRadius: {
+            DEFAULT: "0.75rem",
+          },
+        },
+      },
+    };
   </script>
-</body>
-</html>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-200">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+<header class="py-4">
+<nav class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-4">
+<a class="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white" href="#">
+<span class="material-symbols-outlined text-cyan-500 text-3xl -rotate-45">flight_takeoff</span>
+          TravelAI
+        </a>
+<div class="hidden md:flex items-center gap-6 text-slate-600 dark:text-slate-300 font-medium">
+<a class="hover:text-primary transition-colors" href="#">Home</a>
+<a class="bg-primary text-white px-4 py-2 rounded-full" href="#">Booking</a>
+<a class="hover:text-primary transition-colors" href="#">Chat</a>
+<a class="hover:text-primary transition-colors" href="#">Itinerary</a>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined">account_circle</span>
+<span>prasanth</span>
+</div>
+<a class="border border-primary text-primary px-4 py-2 rounded-full hover:bg-primary/10 transition-colors" href="#">Sign Out</a>
+</div>
+</nav>
+</header>
+<main class="py-8 md:py-12">
+<section class="text-center">
+<h1 class="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white leading-tight">
+          Your Perfect <span class="bg-blue-600 text-white px-4 py-1 rounded-md">Getaway</span> Awaits
+        </h1>
+<p class="mt-4 text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+          Discover exclusive destinations, luxury hotels, and premium cars all in one place
+        </p>
+</section>
+<section class="mt-12">
+<div class="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-xl shadow-lg">
+<form class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 items-end">
+<div class="sm:col-span-2 lg:col-span-1">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" for="destination">Destination</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">location_on</span>
+<input class="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 border-transparent rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" id="destination" placeholder="Where to?" type="text"/>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" for="check-in">Check-in</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">calendar_month</span>
+<input class="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 border-transparent rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" id="check-in" onblur="(this.type='text')" onfocus="(this.type='date')" placeholder="dd-mm-yyyy" type="text"/>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" for="check-out">Check-out</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">calendar_month</span>
+<input class="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 border-transparent rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" id="check-out" onblur="(this.type='text')" onfocus="(this.type='date')" placeholder="dd-mm-yyyy" type="text"/>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" for="guests">Guests</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">group</span>
+<select class="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 border-transparent rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent appearance-none" id="guests">
+<option>2 Guests</option>
+<option>1 Guest</option>
+<option>3 Guests</option>
+<option>4 Guests</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+</div>
+</div>
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity" type="submit">
+<span class="material-symbols-outlined">search</span>
+              Search
+            </button>
+</form>
+</div>
+</section>
+<section class="mt-8 flex justify-center">
+<div class="bg-white dark:bg-slate-800 p-1.5 rounded-full shadow-md inline-flex items-center space-x-2">
+<button class="px-6 py-2 rounded-full flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">location_on</span>
+            Destinations
+          </button>
+<button class="px-6 py-2 rounded-full flex items-center gap-2 text-slate-800 dark:text-white bg-slate-100 dark:bg-slate-700 font-semibold">
+<span class="material-symbols-outlined">apartment</span>
+            Hotels
+          </button>
+<button class="px-6 py-2 rounded-full flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">directions_car</span>
+            Rental Cars
+          </button>
+</div>
+</section>
+<section class="mt-12">
+<div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">18 Available Hotels</h2>
+<div class="relative">
+<select class="w-48 pl-4 pr-10 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent appearance-none">
+<option>All Ratings</option>
+<option>5 Stars</option>
+<option>4 Stars &amp; up</option>
+<option>3 Stars &amp; up</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
+<img alt="Exterior of Paris Grand Hotel" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdY5-1zj-XkYn58lbYv6ktxtDlCA7813wuSg_CbJarlDYNg8c9oQL4mLAg7P-59QWLuiQMRUxDdkXAYGu7RgiuMGx9HvxnUhjtBdp2OqGUNoQ1yXJ6hLgt2HSfigLnMYYaFKNqTckHKEpfYghMW9Y9j4kSQY4xa0S4fcKwi84jeYmLQxe0AipjMp-GZUmHjHUDXeIaxoVrlUIobYmAvhzF4a0V__VkYtjqw75Nu06BzKnuq2mnkf2fyNtN38MtDNIAsE0lCF6-D9A"/>
+<div class="p-5 flex flex-col flex-grow">
+<div class="flex justify-between items-start">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white">Paris Grand Hotel</h3>
+<p class="text-lg font-semibold text-slate-700 dark:text-slate-300">$/night</p>
+</div>
+<p class="flex items-center gap-1 text-slate-500 dark:text-slate-400 mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+                France
+              </p>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="text-xs font-medium px-3 py-1 bg-primary/10 text-primary-dark dark:bg-primary/20 dark:text-primary rounded-full">WiFi</span>
+<span class="text-xs font-medium px-3 py-1 bg-primary/10 text-primary-dark dark:bg-primary/20 dark:text-primary rounded-full">Breakfast</span>
+<span class="text-xs font-medium px-3 py-1 bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 rounded-full">+2</span>
+</div>
+<div class="mt-auto pt-4">
+<button class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity">Book Now</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
+<img alt="Lobby of Hotel Louvre Elegance" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlq7a21zaALp0Pr7_fsYa7-C9jew8QdQ1hJvtrOeCDQBvyKegzJxqLLi71U4C9XKIWCoutNgd1cEcReoXPoe1mEae3noCynbNNHQ6Tak1P0zYSbBv-B0KRpUiqB7Xvq6cp4fn8mET9vh2hYNpIRA5DiQAhXA539UXLTq94-PfOAiCxvYruIizKVxiu-qvG2A13PN4Q6ck5WreAmfXNg8RFRiB_UsY4SbcUdGkmrSRPzfdPm76x8HDXA_KukoW5oRMgKL4kYnY8H8Q"/>
+<div class="p-5 flex flex-col flex-grow">
+<div class="flex justify-between items-start">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white">Hotel Louvre Elegance</h3>
+<p class="text-lg font-semibold text-slate-700 dark:text-slate-300">$/night</p>
+</div>
+<p class="flex items-center gap-1 text-slate-500 dark:text-slate-400 mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+                France
+              </p>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="text-xs font-medium px-3 py-1 bg-primary/10 text-primary-dark dark:bg-primary/20 dark:text-primary rounded-full">WiFi</span>
+<span class="text-xs font-medium px-3 py-1 bg-primary/10 text-primary-dark dark:bg-primary/20 dark:text-primary rounded-full">Spa</span>
+<span class="text-xs font-medium px-3 py-1 bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 rounded-full">+1</span>
+</div>
+<div class="mt-auto pt-4">
+<button class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity">Book Now</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
+<img alt="View from a room at Eiffel View Boutique" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3gqiiwpRTAIpVw2YVtR7RwMghbs4Y1sTvUAZ0Dnh-opmc5ntBtq4QMaDFNjcOXPcVdVAWrm09e5OmkllfGiHuPluKQ2RdhFnruU_f_PMD6e32VrvYkAw2oER__YVQZiUGT_EMs9_zoLsc18S6034U8p18yD0znm_bWC1W5xTNBMB0_7Zj-nLrwmoKMZmdyMTk3xmlP0a9m9KTb4CGlLAk8Qy45cgLubXS-tdVSITNWYn_WShVyzwR5_GbSX3TMun9vsuotMMKz4M"/>
+<div class="p-5 flex flex-col flex-grow">
+<div class="flex justify-between items-start">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white">Eiffel View Boutique</h3>
+<p class="text-lg font-semibold text-slate-700 dark:text-slate-300">$/night</p>
+</div>
+<p class="flex items-center gap-1 text-slate-500 dark:text-slate-400 mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+                France
+              </p>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="text-xs font-medium px-3 py-1 bg-primary/10 text-primary-dark dark:bg-primary/20 dark:text-primary rounded-full">WiFi</span>
+<span class="text-xs font-medium px-3 py-1 bg-primary/10 text-primary-dark dark:bg-primary/20 dark:text-primary rounded-full">Breakfast</span>
+<span class="text-xs font-medium px-3 py-1 bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 rounded-full">+1</span>
+</div>
+<div class="mt-auto pt-4">
+<button class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity">Book Now</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+
+</body></html>

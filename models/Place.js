@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const PlaceSchema = new mongoose.Schema({
-  destination: { type: mongoose.Schema.Types.ObjectId, ref: 'Destination', required: true },
+  destination: { type: String, ref: 'Destination', required: true },
   name: { type: String, required: true },
   description: String,
   images: [String],

@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const CarRental = require('../models/CarRental');
+const Carrental = require('../models/CarRental');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
@@ -19,14 +19,30 @@ const verifyAdmin = async (req, res, next) => {
 
 // Get all car rentals
 router.get('/', async (req, res) => {
-  try { res.json(await CarRental.find()); }
+  try { res.json(await Carrental.find()); }
   catch (err) { res.status(500).json({ message: err.message }); }
 });
+
+
+// Get car rentals by destination ID
+router.get('/destination/:destinationId', async (req, res) => {
+  try {
+    const cars = await Carrental.find({ destination: req.params.destinationId });
+    if (!cars || cars.length === 0) {
+      return res.status(404).json({ message: 'No car rentals found for this destination' });
+    }
+    res.json(cars);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 
 // Get car rental by id
 router.get('/:id', async (req, res) => {
   try {
-    const car = await CarRental.findById(req.params.id);
+    const car = await Carrental.findById(req.params.id);
     if (!car) return res.status(404).json({ message: 'Car rental not found' });
     res.json(car);
   } catch (err) {
@@ -37,7 +53,7 @@ router.get('/:id', async (req, res) => {
 // Create car rental (admin only)
 router.post('/', verifyAdmin, async (req, res) => {
   try {
-    const car = new CarRental(req.body);
+    const car = new Carrental(req.body);
     await car.save();
     res.status(201).json(car);
   } catch (err) {
@@ -48,7 +64,7 @@ router.post('/', verifyAdmin, async (req, res) => {
 // Update car rental (admin only)
 router.put('/:id', verifyAdmin, async (req, res) => {
   try {
-    const car = await CarRental.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const car = await Carrental.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!car) return res.status(404).json({ message: 'Car rental not found' });
     res.json(car);
   } catch (err) {
@@ -59,7 +75,7 @@ router.put('/:id', verifyAdmin, async (req, res) => {
 // Delete car rental (admin only)
 router.delete('/:id', verifyAdmin, async (req, res) => {
   try {
-    const car = await CarRental.findByIdAndDelete(req.params.id);
+    const car = await Carrental.findByIdAndDelete(req.params.id);
     if (!car) return res.status(404).json({ message: 'Car rental not found' });
     res.json({ message: 'Car rental deleted' });
   } catch (err) {

@@ -2,6 +2,7 @@ const router = require('express').Router();
 const Place = require('../models/Place');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 const verifyAdmin = async (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
@@ -14,16 +15,31 @@ const verifyAdmin = async (req, res, next) => {
   } catch { res.status(401).json({ message: 'Invalid token' }); }
 };
 
-// List all places (optional filter by destination)
+
+// GET 
 router.get('/', async (req, res) => {
   try {
-    const q = req.query.destination ? { destination: req.query.destination } : {};
-    const places = await Place.find(q);
+    const places = await Place.find();
     res.json(places);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
+
+///places?destination=ID
+router.get('/destination/:destinationId', async (req, res) => {
+  try {
+    const destId = req.params.destinationId;
+    const places = await Place.find({ destination: destId });
+    res.json(places);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 
 // Get one place
 router.get('/:id', async (req, res) => {

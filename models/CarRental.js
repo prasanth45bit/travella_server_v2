@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
-const CarRentalSchema = new mongoose.Schema({
+const CarrentalSchema = new mongoose.Schema({
   provider: { type: String, required: true },
+  destination: { type: String, ref: 'Destination', required: true },
   carType: String, // e.g., Sedan, SUV
   carModel: String,
   pricePerDay: { type: Number, required: true },
@@ -14,4 +15,4 @@ const CarRentalSchema = new mongoose.Schema({
   }],
 });
 
-module.exports = mongoose.model('CarRental', CarRentalSchema);
+module.exports = mongoose.model('Carrental', CarrentalSchema);
