@@ -1,36 +1,99 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const bookingSchema = new mongoose.Schema({
-  destinationId: {
-    type: String,
-    ref: 'Destination',
-    required: true
-  },
-  startDate: { type: Date, required: true },
-  endDate: { type: Date, required: true },
-  guests: { type: Number, required: true },
-  customPlan: [
-    {
-      day: Number,
-      places: [{ type: String, ref: 'Place' }]
-    } 
-  ],
-  hotel: [
-    {
-      day: Number,
-      hotelId: { type: String, ref: 'Hotel' },
-      pricePerNight: Number
-    }
-  ],
-  car: {
-    carType: String,
-    carId: { type: String, ref: 'Carrental' },
-    pricePerDay: Number,
-    totalDays: Number
-  },
-  totalCost: Number,
-  user: { type: String, ref: 'User' },
-  createdAt: { type: Date, default: Date.now }
-});
+const bookingSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // 🔗 Reference to user who made the booking
+      required: true,
+    },
 
-module.exports = mongoose.model('Booking', bookingSchema);
+    destinationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Destination",
+      required: true,
+    },
+
+    guests: {
+      type: Number,
+      required: true,
+    },
+
+    startDate: {
+      type: Date,
+      required: true,
+    },
+
+    endDate: {
+      type: Date,
+      required: true,
+    },
+
+    customPlan: [
+      {
+        date: {
+          type: String,
+          required: true,
+        },
+
+        Hotel: {
+          id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Hotel",
+          },
+          name: {
+            type: String,
+          },
+          perDay: {
+            type: Number,
+          },
+        },
+
+        places: [
+          {
+            placeId: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "Place",
+            },
+            place: {
+              type: String,
+              required: true,
+            },
+            price: {
+              type: Number,
+              default: 0,
+            },
+            timeSlot: {
+              type: String,
+              enum: ["morning", "afternoon", "evening"],
+            },
+          },
+        ],
+      },
+    ],
+
+    carRental: {
+      carId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "CarRental",
+      },
+      model: {
+        type: String,
+      },
+      providerContact: {
+        type: String,
+      },
+      perDay: {
+        type: Number,
+      },
+    },
+
+    totalCost: {
+      type: Number,
+      required: true,
+    },
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Booking", bookingSchema);
