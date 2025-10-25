@@ -19,6 +19,8 @@
   "homepage": "https://github.com/prasanth45bit/travella_server_v2#readme",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "axios": "^1.12.2",
+    "axois": "^0.0.1-security",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
