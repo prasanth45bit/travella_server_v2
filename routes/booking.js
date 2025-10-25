@@ -39,6 +39,31 @@ const verifyAdmin = async (req, res, next) => {
 };
 
 // -------------------- Routes --------------------
+// GET: User's bookings (with populated details)
+router.get('/', verifyUser, async (req, res) => {
+  try {
+    const bookings = await Booking.find({ userId: req.user._id })
+      .populate('destinationId')
+      .populate('userId');
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ✅ Admin routes first
+router.get('/userbookings', verifyAdmin, async (req, res) => {
+  try {
+    console.log('Admin user:', req.user);
+    const userBookings = await Booking.find()
+      .populate('userId')
+      .populate('destinationId');
+    res.json(userBookings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 
 // POST: Create a new booking
 router.post('/', verifyUser, async (req, res) => {
@@ -88,17 +113,7 @@ router.post('/', verifyUser, async (req, res) => {
   }
 });
 
-// GET: User's bookings (with populated details)
-router.get('/', verifyUser, async (req, res) => {
-  try {
-    const bookings = await Booking.find({ userId: req.user._id })
-      .populate('destinationId')
-      .populate('userId');
-    res.json(bookings);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+
 
 // GET: Single booking by id (with populated details)
 router.get('/:id', verifyUser, async (req, res) => {
@@ -145,18 +160,6 @@ router.put('/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-// GET: All user bookings (admin only)
-router.get('/userbookings', verifyAdmin, async (req, res) => {
-  try {
-    const userBookings = await Booking.find()
-      .populate('userId')
-      .populate('destinationId')
-      .populate('car.carId');
-    res.json(userBookings);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
 
 // GET: Stats
 router.get('/stats', verifyAdmin, async (req, res) => {
