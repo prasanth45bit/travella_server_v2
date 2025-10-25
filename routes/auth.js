@@ -98,4 +98,39 @@ router.post('/login', async (req, res) => {
   }
 });
 
+
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.token;
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) res.status(403).json('Token is not valid!');
+      req.user = user;
+      next();
+    });
+  } else {
+    return res.status(401).json('You are not authenticated!');
+  }
+};
+
+const isAdmin = (req, res, next) => {
+  verifyToken(req, res, () => {
+    if (req.user.role === 'admin') {
+      next();
+    } else {
+      res.status(403).json('You are not alowed to do that!');
+    }
+  });
+};
+
+router.get('/userlist', isAdmin, async (req, res) => {
+  try {
+    const users = await User.find();
+    const userCount = await User.countDocuments();
+    res.status(200).json({ userCount, users });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
 module.exports = router;

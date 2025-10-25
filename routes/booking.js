@@ -1,13 +1,15 @@
 const router = require('express').Router();
 const Booking = require('../models/Booking');
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
+// -------------------- Middleware --------------------
 
 // JWT user middleware
 const verifyUser = async (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
   if (!token) return res.status(401).json({ message: 'No token provided' });
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
@@ -23,10 +25,12 @@ const verifyUser = async (req, res, next) => {
 const verifyAdmin = async (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
   if (!token) return res.status(401).json({ message: 'No token provided' });
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
-    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Admin access only' });
+    if (!user || user.role !== 'admin')
+      return res.status(403).json({ message: 'Admin access only' });
     req.user = user;
     next();
   } catch (err) {
@@ -34,40 +38,28 @@ const verifyAdmin = async (req, res, next) => {
   }
 };
 
+// -------------------- Routes --------------------
+
 // POST: Create a new booking
-// controllers/bookingController.js
 router.post('/', verifyUser, async (req, res) => {
   try {
-    const {
-      destinationId,
-      guests,
-      startDate,
-      endDate,
-      customPlan,
-      hotel,
-      car,
-    } = req.body;
+    const { destinationId, guests, startDate, endDate, customPlan, hotel, car } = req.body;
 
     let totalCost = 0;
-    // Calculate total cost from customPlan
     if (Array.isArray(customPlan)) {
       totalCost = customPlan.reduce((acc, day) => {
-        if (day.Hotel && day.Hotel.perDay) {
-          acc += day.Hotel.perDay;
-        }
+        if (day.Hotel && day.Hotel.perDay) acc += day.Hotel.perDay;
         return acc;
-      }
-      , 0);
+      }, 0);
     }
 
     const userId = req.user._id;
-    // Basic validation
+
     if (!userId || !destinationId || !startDate || !endDate || !customPlan) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-
-    const newBooking = await new Booking({
+    const newBooking = new Booking({
       userId,
       destinationId,
       guests,
@@ -80,46 +72,52 @@ router.post('/', verifyUser, async (req, res) => {
     });
 
     const savedBooking = await newBooking.save();
+    const populatedBooking = await Booking.findById(savedBooking._id)
+      .populate('destinationId')
+      .populate('hotel.hotelId')
+      .populate('car.carId')
+      .populate('userId');
 
     res.status(201).json({
       message: 'Booking created successfully',
-      booking: savedBooking,
+      booking: populatedBooking,
     });
   } catch (error) {
     console.error('Booking creation error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
-}
-);
+});
 
-
-// GET: User's bookings
+// GET: User's bookings (with populated details)
 router.get('/', verifyUser, async (req, res) => {
   try {
-    console.log(req.user._id);
     const bookings = await Booking.find({ userId: req.user._id })
+      .populate('destinationId')
+      .populate('userId');
     res.json(bookings);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// GET: Single booking by id if user owns it
+// GET: Single booking by id (with populated details)
 router.get('/:id', verifyUser, async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
       .populate('destinationId')
-      .populate('hotel.hotelId')
-      .populate('car.carId');
-    if (!booking || booking.user.toString() !== req.user._id.toString()) {
+      .populate('userId');
+
+    if (!booking || booking.userId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
+
     res.json(booking);
   } catch (err) {
     res.status(404).json({ message: 'Booking not found' });
   }
 });
 
+// DELETE: Remove a booking (user only)
 router.delete('/:id', verifyUser, async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
@@ -133,17 +131,42 @@ router.delete('/:id', verifyUser, async (req, res) => {
   }
 });
 
+// PUT: Update booking (admin only)
 router.put('/:id', verifyAdmin, async (req, res) => {
   try {
-    const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true })
+      .populate('destinationId')
+      .populate('userId');
+
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
     res.json(booking);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-  });
+});
 
+// GET: All user bookings (admin only)
+router.get('/userbookings', verifyAdmin, async (req, res) => {
+  try {
+    const userBookings = await Booking.find()
+      .populate('userId')
+      .populate('destinationId')
+      .populate('car.carId');
+    res.json(userBookings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET: Stats
+router.get('/stats', verifyAdmin, async (req, res) => {
+  try {
+    const totalBookings = await Booking.countDocuments();
+    const pendingBookings = await Booking.countDocuments({ status: 'pending' });
+    res.status(200).json({ totalBookings, pendingBookings });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 module.exports = router;
