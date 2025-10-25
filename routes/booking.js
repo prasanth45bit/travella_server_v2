@@ -99,8 +99,6 @@ router.post('/', verifyUser, async (req, res) => {
     const savedBooking = await newBooking.save();
     const populatedBooking = await Booking.findById(savedBooking._id)
       .populate('destinationId')
-      .populate('hotel.hotelId')
-      .populate('car.carId')
       .populate('userId');
 
     res.status(201).json({
