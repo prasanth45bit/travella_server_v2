@@ -83,7 +83,7 @@ async function callApis() {
 callApis();
 
 // Schedule every 20 minutes (20 * 60 * 1000 = 1,200,000 ms)
-setInterval(callApis, 15 * 60 * 1000);
+setInterval(callApis, 5 * 60 * 1000);
 
 // ------------------ Start Server ------------------
 const PORT = process.env.PORT || 5000;
